@@ -1,6 +1,7 @@
 package com.homework.Feed.Training.readfile;
 
 import com.homework.Feed.Training.archivefolder.ArchiveFolder;
+import com.homework.Feed.Training.readfile.FileCheck;
 import com.homework.Feed.Training.pojo.Associates;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -23,6 +23,9 @@ public class ReadFile {
     @Autowired
     ArchiveFolder openProcessing;
 
+    @Autowired
+    FileCheck fileCheck;
+
     @Value("${processing.file.folder}")
     private Path processingFolder;
 
@@ -31,21 +34,20 @@ public class ReadFile {
 
     public void readFile() {
 
-        //this version uses openCsv
-//        List<Associates> list = new ArrayList<>();
-//        FileReader reader = null;
+/*        this version uses openCsv
+        List<Associates> list = new ArrayList<>();
+        FileReader reader = null;
 
-//        try {
-//            reader =new FileReader(processingFolder +  prefix);
-//            list = new CsvToBeanBuilder(reader).withSeparator("|").withType(Associates.class).build().parse();
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        list.forEach(a -> {
-//
-//        });
-//    }
+        try {
+            reader =new FileReader(processingFolder +  prefix);
+            list = new CsvToBeanBuilder(reader).withSeparator("|").withType(Associates.class).build().parse();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        list.forEach(a -> {
 
+        });
+    }*/
 
         //this is the longhand version
         try {
@@ -54,9 +56,7 @@ public class ReadFile {
                 String fileName;
                 BufferedReader br = null;
                 List<String[]> associatesList = null;
-                List<Associates> associatesPojo = new ArrayList<>();
                 InputStream stream;
-                Associates assoc;
 
                 //1.get file name, 2.get file path, read / or \, get fileName, 3.read the stream with the br,
                 //4. assign to associatesList: read lines, skip header, delimit with | character, put in list
@@ -66,24 +66,6 @@ public class ReadFile {
                     br = new BufferedReader(new InputStreamReader(stream));
                     associatesList = br.lines().skip(1).map(s -> s.split(Pattern.quote("|"))).collect(Collectors.toList());
 
-                    //stream associatesList, for each line print out to console
-                    associatesList.stream().forEach(a -> System.out.println(Arrays.toString(a)));
-                    //System.out.println(associatesList.toString());
-                    //associatesList.forEach(a -> log.info(a));
-
-
-                    for (String[] associate : associatesList) {
-                        assoc = new Associates();
-                        assoc.setEmployeeNbr(associate[0]);
-                        assoc.setEffectiveDt(associate[1]);
-                        assoc.setWorkCtry(associate[2]);
-                        assoc.setFirstNm(associate[3]);
-                        assoc.setLastNm(associate[4]);
-                        assoc.setMiddleNm(associate[5]);
-
-                        associatesPojo.add(assoc);
-                    }
-
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } finally {
@@ -91,6 +73,7 @@ public class ReadFile {
                     //calls the method that checks for files in processing and calls methods that moves files to archive
                     try {
                         br.close();
+                        fileCheck.fileCheck(associatesList);
                         openProcessing.openProcessing();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -101,5 +84,25 @@ public class ReadFile {
             e.printStackTrace();
         }
     }
+
+
+    public void addToPojo(List<String[]> list) {
+        Associates assoc;
+        List<Associates> associatesPojo = new ArrayList<>();
+
+        for (String[] associate : list) {
+            assoc = new Associates();
+            assoc.setEmployeeNbr(associate[0]);
+            assoc.setEffectiveDt(associate[1]);
+            assoc.setWorkCtry(associate[2]);
+            assoc.setFirstNm(associate[3]);
+            assoc.setLastNm(associate[4]);
+            assoc.setMiddleNm(associate[5]);
+
+            associatesPojo.add(assoc);
+        }
+    }
 }
+
+
 

@@ -20,7 +20,7 @@ public class FileMover {
     private Path associateFolder;
 
     @Value("${processing.file.folder}")
-    private Path associateProcessingFolder;
+    private Path processingFolder;
 
 
     public void folderOpener() {
@@ -40,10 +40,10 @@ public class FileMover {
 
     public void fileMover() {
         try {
-            Files.createDirectories(associateProcessingFolder);
+            Files.createDirectories(processingFolder);
             Files.walk(associateFolder).filter(f -> f.toString().endsWith(".csv"))
                     .forEach(f -> {
-                        Path destination = associateProcessingFolder.resolve(associateFolder.relativize(f));
+                        Path destination = processingFolder.resolve(associateFolder.relativize(f));
 
                         try {
                             Files.createDirectories(destination.getParent());
